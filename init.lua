@@ -100,6 +100,7 @@ vim.g.have_nerd_font = true
 
 -- Make line numbers default
 vim.opt.number = true
+vim.opt.relativenumber = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
 -- vim.opt.relativenumber = true
@@ -123,6 +124,14 @@ vim.opt.breakindent = true
 
 -- Save undo history
 vim.opt.undofile = true
+vim.opt.undodir = os.getenv 'HOME' .. '/.vim/undodir'
+vim.opt.swapfile = false
+vim.opt.backup = false
+
+vim.opt.tabstop = 4
+vim.opt.softtabstop = 4
+vim.opt.shiftwidth = 4
+vim.opt.expandtab = true
 
 -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
 vim.opt.ignorecase = true
@@ -197,6 +206,10 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+vim.keymap.set('v', 'p', '"_dP')
+
+vim.keymap.set('n', ';', ':')
+
 -- NOTE: Some terminals have coliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
@@ -214,6 +227,25 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function()
     vim.highlight.on_yank()
+  end,
+})
+
+-- ZelliJ open scrollback fix
+vim.api.nvim_create_autocmd('BufReadPost', {
+  pattern = '/tmp/*.dump',
+  callback = function()
+    local pane_id = os.getenv 'ZELLIJ_PANE_ID'
+    if pane_id then
+      local cwd_file = '/tmp/zj-cwd-' .. pane_id
+      local f = io.open(cwd_file, 'r')
+      if f then
+        local actual_cwd = f:read '*l'
+        f:close()
+        if actual_cwd and vim.fn.isdirectory(actual_cwd) == 1 then
+          vim.cmd('cd ' .. actual_cwd)
+        end
+      end
+    end
   end,
 })
 
@@ -697,8 +729,18 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         --
+        basedpyright = {
+          settings = {
+            basedpyright = {
+              analysis = {
+                typeCheckingMode = 'standard',
+              },
+            },
+          },
+        },
 
-        pyright = {},
+        -- pyright = {},
+        gopls = {},
 
         lua_ls = {
           -- cmd = { ... },
@@ -910,7 +952,6 @@ require('lazy').setup({
       }
     end,
   },
-
   { -- You can easily change to a different colorscheme.
     -- Change the name of the colorscheme plugin below, and then
     -- change the command in the config to whatever the name of that colorscheme is.
@@ -979,7 +1020,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'python', 'rust' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'python', 'rust', 'go' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -1026,6 +1067,29 @@ require('lazy').setup({
       { '<A-\\>', '<cmd>TmuxNavigatePrevious<cr>' },
     },
   },
+  {
+    'stevearc/aerial.nvim',
+    opts = {},
+    -- Optional dependencies
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+      'nvim-tree/nvim-web-devicons',
+    },
+    keys = {
+      { '<leader>at', '<cmd>AerialToggle!<cr>', desc = 'Aerial: Toggle outline' },
+      { '{', '<cmd>AerialPrev<cr>', desc = 'Aerial: Previous symbol' },
+      { '}', '<cmd>AerialNext<cr>', desc = 'Aerial: Next symbol' },
+    },
+    -- 2. Use 'opts' for general configuration
+    opts = {
+      -- Highlight the current symbol in the aerial window
+      highlight_on_hover = true,
+      -- Re-attach to the buffer when it changes
+      attach_mode = 'window',
+      -- Example: Show icons next to symbols
+      icons = {},
+    },
+  },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
@@ -1042,7 +1106,7 @@ require('lazy').setup({
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
-
+  require 'kickstart.plugins.undotree',
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
   --
