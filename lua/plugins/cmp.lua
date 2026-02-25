@@ -21,6 +21,18 @@ return {
     local cmp = require 'cmp'
     local luasnip = require 'luasnip'
     luasnip.config.setup {}
+    local neocodeium = require 'neocodeium'
+    local commands = require 'neocodeium.commands'
+
+    cmp.event:on('menu_opened', function()
+      neocodeium.clear()
+    end)
+
+    neocodeium.setup {
+      filter = function()
+        return not cmp.visible()
+      end,
+    }
 
     cmp.setup {
       snippet = {
@@ -28,14 +40,43 @@ return {
           luasnip.lsp_expand(args.body)
         end,
       },
-      completion = { completeopt = 'menu,menuone,noinsert' },
+      completion = {
+        completeopt = 'menu,menuone,noinsert',
+        autocomplete = false,
+      },
+      matching = {
+        disallow_fuzzy_matching = false,
+        disallow_fullfuzzy_matching = false,
+        disallow_fulltext_matching = false,
+        disallow_partial_fuzzy_matching = false,
+        disallow_partial_matching = false,
+        disallow_prefix_unmatching = false,
+        disallow_symbol_nonprefix_matching = false,
+      },
+
+      sorting = {
+        priority_weight = 2,
+        comparators = {
+          cmp.config.compare.offset,
+          cmp.config.compare.exact,
+          cmp.config.compare.score,
+          -- cmp.config.compare.scopes, -- Add this if you want even stricter scoping
+          require('cmp-under-comparator').under,
+          cmp.config.compare.recently_used,
+          cmp.config.compare.locality, -- Prioritizes things close to cursor (args!)
+          cmp.config.compare.kind, -- This will group LSP types together
+          cmp.config.compare.sort_text,
+          cmp.config.compare.length,
+          cmp.config.compare.order,
+        },
+      },
       mapping = cmp.mapping.preset.insert {
         ['<C-n>'] = cmp.mapping.select_next_item(),
         ['<C-p>'] = cmp.mapping.select_prev_item(),
         ['<C-b>'] = cmp.mapping.scroll_docs(-4),
         ['<C-f>'] = cmp.mapping.scroll_docs(4),
         ['<C-y>'] = cmp.mapping.confirm { select = true },
-        ['<C-Space>'] = cmp.mapping.complete {},
+        ['<C-e>'] = cmp.mapping.complete {},
         ['<C-l>'] = cmp.mapping(function()
           if luasnip.expand_or_locally_jumpable() then
             luasnip.expand_or_jump()
@@ -48,14 +89,14 @@ return {
         end, { 'i', 's' }),
       },
       sources = {
-        {
-          name = 'lazydev',
-          group_index = 0,
-        },
         { name = 'nvim_lsp' },
         { name = 'luasnip' },
         { name = 'path' },
         { name = 'nvim_lsp_signature_help' },
+        {
+          name = 'lazydev',
+          group_index = 0,
+        },
       },
     }
   end,

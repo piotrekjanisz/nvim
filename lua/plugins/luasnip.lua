@@ -11,16 +11,21 @@ return {
     config = function()
       local ls = require 'luasnip'
       ls.filetype_extend('javascript', { 'jsdoc' })
+      require('luasnip.loaders.from_vscode').lazy_load()
 
+      ls.config.set_config {
+        history = true, -- Keep the last snippet around to jump back into it
+        updateevents = 'TextChanged,TextChangedI', -- Update dynamic snippets as you type
+        enable_autosnippets = true,
+      }
       --- TODO: What is expand?
-      vim.keymap.set({ 'i' }, '<C-s>e', function()
-        ls.expand()
+      vim.keymap.set({ 'i' }, '<A-e>', function()
+        if ls.expand_or_jumpable() then
+          ls.expand_or_jump()
+        end
       end, { silent = true })
 
-      vim.keymap.set({ 'i', 's' }, '<C-s>;', function()
-        ls.jump(1)
-      end, { silent = true })
-      vim.keymap.set({ 'i', 's' }, '<C-s>,', function()
+      vim.keymap.set({ 'i', 's' }, '<A-w>', function()
         ls.jump(-1)
       end, { silent = true })
 

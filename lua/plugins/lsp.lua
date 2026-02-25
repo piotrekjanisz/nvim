@@ -98,15 +98,49 @@ return {
       },
     }
 
+    local ruff_on_attach = function(client, bufnr)
+      client.server_capabilities.hoverProvider = false
+      client.server_capabilities.definitionProvider = false
+      vim.api.nvim_create_autocmd('BufWritePre', {
+        pattern = '*.py',
+        callback = function()
+          -- 1. Organize imports using Ruff
+          -- vim.lsp.buf.code_action {
+          --   context = { only = { 'source.organizeImports' } },
+          --   apply = true,
+          -- }
+          -- vim.wait(100)
+
+          -- 2. Format using Ruff
+          vim.lsp.buf.format { async = false }
+        end,
+      })
+    end
+
     local capabilities = vim.lsp.protocol.make_client_capabilities()
     capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
     local servers = {
       basedpyright = {
+        on_attach = function(client, bufnr)
+          client.server_capabilities.semanticTokensProvider = nil
+        end,
         settings = {
           basedpyright = {
             analysis = {
               typeCheckingMode = 'standard',
+            },
+            disableOrganizeImports = true,
+          },
+        },
+      },
+
+      ruff = {
+        on_attach = ruff_on_attach,
+        init_options = {
+          settings = {
+            lint = {
+              enable = false,
             },
           },
         },
