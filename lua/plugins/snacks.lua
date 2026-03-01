@@ -7,6 +7,9 @@ return {
       ui_select = true,
     },
     gitbrowse = {},
+    notifier = {},
+    lazygit = {},
+    terminal = {},
   },
   keys = {
     -- Basic Pickers
@@ -118,6 +121,13 @@ return {
       desc = 'Open in repository browser',
     },
     {
+      '<leader>gl',
+      function()
+        Snacks.lazygit()
+      end,
+      desc = 'Open lazygit',
+    },
+    {
       '<leader>sq',
       function()
         Snacks.picker.qflist()
@@ -128,4 +138,12 @@ return {
       Snacks.picker.smart()
     end, { desc = 'Smart Search (Files/Buffers/Recent)' }),
   },
+  -- Toggle terminal with Ctrl + /
+  vim.keymap.set({ 'n', 't' }, '<C-_>', function()
+    Snacks.terminal.toggle()
+  end, { desc = 'Toggle Terminal' }),
+  -- This is the common shortcut most people set up
+  vim.keymap.set('n', '<leader>fT', function()
+    Snacks.terminal.toggle()
+  end, { desc = 'Terminal (Root Dir)' }),
 }
