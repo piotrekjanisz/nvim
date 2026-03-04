@@ -12,6 +12,11 @@
 --   end,
 -- }
 -- return {
+--   'pmouraguedes/neodarcula.nvim',
+--   lazy = false,
+--   priority = 1000,
+-- }
+-- return {
 --   {
 --     'sainnhe/gruvbox-material',
 --     lazy = false,
@@ -30,33 +35,51 @@
 --   },
 -- }
 return {
-  {
-    'EdenEast/nightfox.nvim',
-    priority = 1000, -- Load early
-    config = function()
-      require('nightfox').setup {
-        options = {
-          -- Compiled themes are faster to load
-          compile_path = vim.fn.stdpath 'cache' .. '/nightfox',
-          compile_file_suffix = '_compiled',
-
-          transparent = false, -- Set to true if you like transparency
-          terminal_colors = true, -- Use nightfox colors in :terminal
-          dim_inactive = false, -- Dims non-active windows
-
-          styles = { -- Style customization
-            comments = 'italic',
-            keywords = 'bold',
-            types = 'italic,bold',
-          },
-        },
-      }
-
-      -- You can change "nightfox" to "duskfox", "nordfox", etc.
-      vim.cmd 'colorscheme nightfox'
-    end,
-  },
+  'navarasu/onedark.nvim',
+  priority = 1000, -- make sure to load this before all the other start plugins
+  config = function()
+    require('onedark').setup {
+      style = 'darker',
+    }
+    require('onedark').load()
+  end,
 }
+-- return {
+--   {
+--     'rebelot/kanagawa.nvim',
+--     config = function()
+--       vim.cmd 'colorscheme kanagawa-wave'
+--     end,
+--   },
+-- }
+-- return {
+--   {
+--     'EdenEast/nightfox.nvim',
+--     priority = 1000, -- Load early
+--     config = function()
+--       require('nightfox').setup {
+--         options = {
+--           -- Compiled themes are faster to load
+--           compile_path = vim.fn.stdpath 'cache' .. '/nightfox',
+--           compile_file_suffix = '_compiled',
+--
+--           transparent = false, -- Set to true if you like transparency
+--           terminal_colors = true, -- Use nightfox colors in :terminal
+--           dim_inactive = false, -- Dims non-active windows
+--
+--           styles = { -- Style customization
+--             comments = 'italic',
+--             keywords = 'bold',
+--             types = 'italic,bold',
+--           },
+--         },
+--       }
+--
+--       -- You can change "nightfox" to "duskfox", "nordfox", etc.
+--       vim.cmd 'colorscheme nightfox'
+--     end,
+--   },
+-- }
 -- return {
 --   {
 --     'olimorris/onedarkpro.nvim',

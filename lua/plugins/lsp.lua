@@ -119,6 +119,7 @@ return {
     local ruff_on_attach = function(client, bufnr)
       client.server_capabilities.hoverProvider = false
       client.server_capabilities.definitionProvider = false
+      client.server_capabilities.semanticTokensProvider = nil
       vim.api.nvim_create_autocmd('BufWritePre', {
         pattern = '*.py',
         callback = function()
@@ -163,7 +164,6 @@ return {
           },
         },
       },
-
       gopls = {},
 
       lua_ls = {

@@ -31,7 +31,7 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 
 vim.keymap.set('v', 'p', '"_dP')
 
-vim.keymap.set('n', ';', ':')
+-- vim.keymap.set('n', ';', ':')
 
 vim.keymap.set('n', '<leader>cp', function()
   local path = vim.fn.expand '%:.'
