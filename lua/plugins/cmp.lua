@@ -21,18 +21,6 @@ return {
     local cmp = require 'cmp'
     local luasnip = require 'luasnip'
     luasnip.config.setup {}
-    local neocodeium = require 'neocodeium'
-    local commands = require 'neocodeium.commands'
-
-    cmp.event:on('menu_opened', function()
-      neocodeium.clear()
-    end)
-
-    neocodeium.setup {
-      filter = function()
-        return not cmp.visible()
-      end,
-    }
 
     cmp.setup {
       snippet = {

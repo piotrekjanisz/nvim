@@ -36,7 +36,7 @@ vim.keymap.set('v', 'p', '"_dP')
 vim.keymap.set('n', '<leader>cp', function()
   local path = vim.fn.expand '%:.'
   vim.fn.setreg('+', path)
-  vim.notify('Copied path to clipboard: ' or path)
+  vim.notify('Copied path to clipboard: ' .. path)
 end, { desc = 'Copy relative path to clipboard' })
 
 -- vim: ts=2 sts=2 sw=2 et

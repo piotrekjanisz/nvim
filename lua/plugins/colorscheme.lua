@@ -34,16 +34,36 @@
 --     end,
 --   },
 -- }
-return {
-  'navarasu/onedark.nvim',
-  priority = 1000, -- make sure to load this before all the other start plugins
-  config = function()
-    require('onedark').setup {
-      style = 'darker',
-    }
-    require('onedark').load()
-  end,
-}
+-- return {
+--   'navarasu/onedark.nvim',
+--   priority = 1000, -- make sure to load this before all the other start plugins
+--   config = function()
+--     require('onedark').setup {
+--       style = 'darker',
+--     }
+--     require('onedark').load()
+--
+--     -- Let treesitter win for groups it handles well,
+--     -- but keep semantic-only groups (parameter, decorator, etc.)
+--     local dominated_by_treesitter = {
+--       'variable',
+--       'function',
+--       'method',
+--       'keyword',
+--       'type',
+--       'property',
+--       'namespace',
+--       'string',
+--       'number',
+--       'operator',
+--       'comment',
+--     }
+--     for _, group in ipairs(dominated_by_treesitter) do
+--       vim.api.nvim_set_hl(0, '@lsp.type.' .. group, {})
+--       vim.api.nvim_set_hl(0, '@lsp.type.' .. group .. '.python', {})
+--     end
+--   end,
+-- }
 -- return {
 --   {
 --     'rebelot/kanagawa.nvim',
@@ -131,17 +151,34 @@ return {
 --     end,
 --   },
 -- }
--- return {
---   'nickkadutskyi/jb.nvim',
---   lazy = false,
---   priority = 1000,
---   config = function()
---     require('jb').setup {
---       -- Optional: enable transparency if your terminal has a blur effect
---       -- transparent = true,
---     }
---     vim.cmd.colorscheme 'jb'
---   end,
--- }
+return {
+  'nickkadutskyi/jb.nvim',
+  lazy = false,
+  priority = 1000,
+  config = function()
+    require('jb').setup {
+      -- Optional: enable transparency if your terminal has a blur effect
+      -- transparent = true,
+
+      -- Disable jb.nvim's snacks picker styling — its ToolWindow colors
+      -- make the picker look gray. Let snacks.nvim use its own defaults
+      -- (linked to standard hl groups like Special, Directory, etc.).
+      snacks = { explorer = { enabled = false } },
+    }
+    vim.cmd.colorscheme 'jb'
+
+    -- Disable all semantic tokens for Python — basedpyright's tokens
+    -- override jb.nvim's treesitter highlights and make things worse.
+    -- jb.nvim already defines good Python-specific treesitter groups.
+    vim.api.nvim_create_autocmd('LspAttach', {
+      callback = function(args)
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+        if client and client.name == 'basedpyright' then
+          client.server_capabilities.semanticTokensProvider = nil
+        end
+      end,
+    })
+  end,
+}
 
 -- vim: ts=2 sts=2 sw=2 et

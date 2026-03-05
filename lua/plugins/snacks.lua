@@ -134,16 +134,27 @@ return {
       end,
       desc = 'Quickfix List',
     },
-    vim.keymap.set('n', '<leader>sp', function()
-      Snacks.picker.smart()
-    end, { desc = 'Smart Search (Files/Buffers/Recent)' }),
+    {
+      '<leader>sp',
+      function()
+        Snacks.picker.smart()
+      end,
+      desc = 'Smart Search (Files/Buffers/Recent)',
+    },
+    {
+      '<C-_>',
+      function()
+        Snacks.terminal.toggle()
+      end,
+      desc = 'Toggle Terminal',
+      mode = { 'n', 't' },
+    },
+    {
+      '<leader>fT',
+      function()
+        Snacks.terminal.toggle()
+      end,
+      desc = 'Terminal (Root Dir)',
+    },
   },
-  -- Toggle terminal with Ctrl + /
-  vim.keymap.set({ 'n', 't' }, '<C-_>', function()
-    Snacks.terminal.toggle()
-  end, { desc = 'Toggle Terminal' }),
-  -- This is the common shortcut most people set up
-  vim.keymap.set('n', '<leader>fT', function()
-    Snacks.terminal.toggle()
-  end, { desc = 'Terminal (Root Dir)' }),
 }

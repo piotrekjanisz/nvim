@@ -21,7 +21,7 @@ return {
         end, '[G]oto [D]efinition')
         map('gr', function()
           Snacks.picker.lsp_references()
-        end, '[G]oto [R]eferences', { nowait = true })
+        end, '[G]oto [R]eferences')
         map('gI', function()
           Snacks.picker.lsp_implementations()
         end, '[G]oto [I]mplementation')
@@ -42,6 +42,7 @@ return {
         -- map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
         map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
         map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
+
         map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
         ---@param client vim.lsp.Client
@@ -104,15 +105,6 @@ return {
       virtual_text = {
         source = 'if_many',
         spacing = 2,
-        format = function(diagnostic)
-          local diagnostic_message = {
-            [vim.diagnostic.severity.ERROR] = diagnostic.message,
-            [vim.diagnostic.severity.WARN] = diagnostic.message,
-            [vim.diagnostic.severity.INFO] = diagnostic.message,
-            [vim.diagnostic.severity.HINT] = diagnostic.message,
-          }
-          return diagnostic_message[diagnostic.severity]
-        end,
       },
     }
 
@@ -141,9 +133,6 @@ return {
 
     local servers = {
       basedpyright = {
-        on_attach = function(client, bufnr)
-          client.server_capabilities.semanticTokensProvider = nil
-        end,
         settings = {
           basedpyright = {
             analysis = {
