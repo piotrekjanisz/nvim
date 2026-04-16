@@ -6,7 +6,6 @@ return {
       -- Equivalent to telescope-ui-select
       ui_select = true,
     },
-    gitbrowse = {},
     notifier = {},
     lazygit = {},
     terminal = {},
@@ -105,20 +104,13 @@ return {
       desc = 'Search Config',
     },
 
-    -- Git File History (Your extension replacement)
+    -- Git
     {
-      '<leader>gs',
+      '<leader>gf',
       function()
         Snacks.picker.git_log { follow = true, current_file = true }
       end,
       desc = 'Git File History',
-    },
-    {
-      '<leader>gb',
-      function()
-        Snacks.gitbrowse()
-      end,
-      desc = 'Open in repository browser',
     },
     {
       '<leader>gl',
@@ -155,6 +147,38 @@ return {
         Snacks.terminal.toggle()
       end,
       desc = 'Terminal (Root Dir)',
+    },
+    {
+      '<leader>gw',
+      function()
+        local word = vim.fn.expand '<cword>'
+        Snacks.picker.grep { search = '\\<' .. word .. '\\>' }
+      end,
+      desc = 'Grep word',
+    },
+    {
+      '<leader>gc',
+      function()
+        local word = vim.fn.expand '<cword>'
+        Snacks.picker.grep { search = 'class ' .. word .. '\\>' }
+      end,
+      desc = 'Grep class definition',
+    },
+    {
+      '<leader>gi',
+      function()
+        local word = vim.fn.expand '<cword>'
+        Snacks.picker.grep { search = '\\<' .. word .. '\\(' }
+      end,
+      desc = 'Grep instantiation',
+    },
+    {
+      '<leader>gd',
+      function()
+        local word = vim.fn.expand '<cword>'
+        Snacks.picker.grep { search = 'def ' .. word .. '\\>' }
+      end,
+      desc = 'Grep definition',
     },
   },
 }

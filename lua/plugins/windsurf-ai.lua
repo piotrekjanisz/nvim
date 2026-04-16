@@ -15,6 +15,7 @@ return {
       end,
     }
 
-    vim.keymap.set('i', '<A-f>', neocodeium.accept)
+    vim.keymap.set('i', '<A-f>', neocodeium.accept, { desc = 'Windsurf accept' })
+    vim.keymap.set('i', '<A-e>', neocodeium.cycle_or_complete, { desc = 'Windsurf cycle or complete' })
   end,
 }
