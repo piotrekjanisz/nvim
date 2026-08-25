@@ -48,6 +48,36 @@ return {
       end,
       desc = 'Grep',
     },
+
+    -- Grep restricted to a file-name pattern. The grep picker passes `glob`
+    -- straight through to ripgrep's -g, so anything rg accepts works here, and
+    -- several patterns can be given space-separated. Defaults to the current
+    -- file's extension. Note the live picker also parses trailing args itself,
+    -- so typing `needle -- -g=*.py` in the input box does the same ad hoc.
+    {
+      '<leader>sG',
+      function()
+        local ext = vim.fn.expand '%:e'
+        vim.ui.input({ prompt = 'Grep in files matching: ', default = ext ~= '' and ('*.' .. ext) or '' }, function(input)
+          if not input or vim.trim(input) == '' then
+            return
+          end
+          Snacks.picker.grep { glob = vim.split(vim.trim(input), '%s+', { trimempty = true }) }
+        end)
+      end,
+      desc = 'Grep (file pattern)',
+    },
+    {
+      '<leader>sT',
+      function()
+        local ft = vim.bo.filetype
+        if ft == '' then
+          return vim.notify('No filetype for this buffer', vim.log.levels.WARN)
+        end
+        Snacks.picker.grep { ft = ft }
+      end,
+      desc = 'Grep (current filetype)',
+    },
     {
       '<leader>sd',
       function()
