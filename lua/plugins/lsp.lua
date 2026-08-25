@@ -8,6 +8,45 @@ return {
     'hrsh7th/cmp-nvim-lsp',
   },
   config = function()
+    -- basedpyright >= 1.39.6 gained auto-import of *project* symbols, but it builds the
+    -- workspace-wide index lazily, on the first completion / 'add import' request. On a
+    -- big monorepo that is a one-off ~9s stall exactly when you ask for an import.
+    -- Pay it up front in the background, on a throwaway in-memory document, so it lands
+    -- while you are still reading code. Retries because the index is only buildable once
+    -- the server has finished its initial workspace enumeration.
+    local warmed_clients = {}
+
+    local function warm_auto_import_index(client)
+      if warmed_clients[client.id] then
+        return
+      end
+      warmed_clients[client.id] = true
+      local uri = vim.uri_from_fname(client.root_dir .. '/__lsp_autoimport_warmup__.py')
+      local attempts = 0
+      local function __warm()
+        if client:is_stopped() or attempts >= 8 then
+          return
+        end
+        attempts = attempts + 1
+        local started = vim.uv.hrtime()
+        client:notify('textDocument/didOpen', {
+          textDocument = { uri = uri, languageId = 'python', version = attempts, text = 'Zz\n' },
+        })
+        client:request('textDocument/completion', {
+          textDocument = { uri = uri },
+          position = { line = 0, character = 2 },
+        }, function()
+          client:notify('textDocument/didClose', { textDocument = { uri = uri } })
+          -- A fast reply means the index was not built yet (server still enumerating);
+          -- a slow one means we just paid for the build. Only retry in the former case.
+          if (vim.uv.hrtime() - started) / 1e9 < 1.5 then
+            vim.defer_fn(__warm, 4000)
+          end
+        end)
+      end
+      vim.defer_fn(__warm, 1000)
+    end
+
     vim.api.nvim_create_autocmd('LspAttach', {
       group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
       callback = function(event)
@@ -58,6 +97,10 @@ return {
         end
 
         local client = vim.lsp.get_client_by_id(event.data.client_id)
+        if client and client.name == 'basedpyright' then
+          warm_auto_import_index(client)
+        end
+
         if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
           local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
           vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
@@ -133,10 +176,15 @@ return {
 
     local servers = {
       basedpyright = {
+        on_attach = function(client, bufnr)
+          client.server_capabilities.semanticTokensProvider = nil
+        end,
         settings = {
           basedpyright = {
             analysis = {
               typeCheckingMode = 'standard',
+              fileEnumerationTimeout = 60,
+              diagnosticMode = 'openFilesOnly',
             },
             disableOrganizeImports = true,
           },
@@ -155,6 +203,35 @@ return {
       },
       gopls = {},
 
+      vtsls = {
+        settings = {
+          typescript = {
+            inlayHints = {
+              parameterNames = { enabled = 'literals' },
+              parameterTypes = { enabled = true },
+              variableTypes = { enabled = false },
+              propertyDeclarationTypes = { enabled = true },
+              functionLikeReturnTypes = { enabled = true },
+              enumMemberValues = { enabled = true },
+            },
+          },
+          javascript = {
+            inlayHints = {
+              parameterNames = { enabled = 'literals' },
+              parameterTypes = { enabled = true },
+              variableTypes = { enabled = false },
+              propertyDeclarationTypes = { enabled = true },
+              functionLikeReturnTypes = { enabled = true },
+              enumMemberValues = { enabled = true },
+            },
+          },
+        },
+      },
+
+      eslint = {},
+
+      biome = {},
+
       lua_ls = {
         settings = {
           Lua = {
@@ -169,20 +246,17 @@ return {
     local ensure_installed = vim.tbl_keys(servers or {})
     vim.list_extend(ensure_installed, {
       'stylua',
+      'prettierd',
+      'prettier',
     })
     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
-    require('mason-lspconfig').setup {
-      ensure_installed = {},
-      automatic_installation = false,
-      handlers = {
-        function(server_name)
-          local server = servers[server_name] or {}
-          server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-          require('lspconfig')[server_name].setup(server)
-        end,
-      },
-    }
+    for name, opts in pairs(servers) do
+      opts.capabilities = vim.tbl_deep_extend('force', {}, capabilities, opts.capabilities or {})
+      vim.lsp.config(name, opts)
+    end
+
+    require('mason-lspconfig').setup {}
   end,
 }
 
